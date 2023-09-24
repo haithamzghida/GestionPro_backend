@@ -920,22 +920,6 @@ app.put('/bl/bills/:id', (req, res) => {
   });
 });
 
-app.post('/login_inventory', (req, res) => {
-  const { email, password } = req.body;
-
-  const query = `SELECT * FROM login_inventory WHERE email = '${email}' AND password = '${password}'`;
-
-  connection.query(query, (error, results) => {
-    if (error) throw error;
-
-    if (results.length === 1) {
-      res.json({ success: true, message: 'Login successful' });
-    } else {
-      res.json({ success: false, message: 'Invalid credentials' });
-    }
-  });
-});
-
 
 
 

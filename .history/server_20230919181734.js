@@ -323,19 +323,20 @@ app.get('/products/produits/:page', async (req, res) => {
   }
 });
 
+// Route to add a new product
 app.post('/products', (req, res) => {
-  const { name, price, description, image_url, category_id, cout_de_production, profit } = req.body;
+  const { name, price, description, image_url, category_id } = req.body;
 
   // Ensure that all required fields are provided
-  if (!name || !price || !description || !image_url || !category_id || cout_de_production === undefined || profit === undefined) {
+  if (!name || !price || !description || !image_url || !category_id) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
   const created_at = new Date().toISOString().slice(0, 19).replace('T', ' ');
   const updated_at = created_at;
 
-  const query = 'INSERT INTO products (name, price, description, image_url, created_at, updated_at, category_id, cout_de_production, profit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
-  const values = [name, price, description, image_url, created_at, updated_at, category_id, cout_de_production, profit];
+  const query = 'INSERT INTO products (name, price, description, image_url, created_at, updated_at, category_id) VALUES (?, ?, ?, ?, ?, ?, ?)';
+  const values = [name, price, description, image_url, created_at, updated_at, category_id];
 
   connection.query(query, values, (error, results) => {
     if (error) {
@@ -346,8 +347,6 @@ app.post('/products', (req, res) => {
     }
   });
 });
-
-
 
 
 // Route to add a new category
@@ -426,7 +425,7 @@ app.delete('/products/:productId', (req, res) => {
 // Route to update a product by ID
 app.put('/products/:productId', (req, res) => {
   const productId = req.params.productId;
-  const { name, price, description, image_url, category_id, cout_de_production, profit } = req.body;
+  const { name, price, description, image_url, category_id } = req.body;
 
   // Prepare the updated product data
   const updatedProduct = {};
@@ -445,12 +444,6 @@ app.put('/products/:productId', (req, res) => {
   }
   if (category_id) {
     updatedProduct.category_id = category_id;
-  }
-  if (cout_de_production !== undefined) {
-    updatedProduct.cout_de_production = cout_de_production;
-  }
-  if (profit !== undefined) {
-    updatedProduct.profit = profit;
   }
 
   if (Object.keys(updatedProduct).length === 0) {
@@ -474,7 +467,6 @@ app.put('/products/:productId', (req, res) => {
     }
   });
 });
-
 
 // Route to update the "disponibilite" column for a specific product by ID
 app.put('/products/:productId/disponibilite', (req, res) => {
@@ -512,30 +504,23 @@ app.get('/products/disponibilite/:productId', async (req, res) => {
 
   try {
     // Fetch the product's disponibilite status by its ID
-    connection.query(
+    const [product] = await db.query(
       "SELECT disponibilite FROM products WHERE id = ?",
-      [productId],
-      (error, results) => {
-        if (error) {
-          console.error('Database Error:', error); // Log the error for debugging
-          return res.status(500).json({ message: 'An error occurred while fetching the product disponibilite.', error: error.message });
-        }
-
-        if (results.length === 0) {
-          return res.status(404).json({ message: 'Product not found with the specified ID.' });
-        }
-
-        const disponibilite = results[0].disponibilite;
-
-        return res.status(200).json({ disponibilite });
-      }
+      [productId]
     );
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found with the specified ID.' });
+    }
+
+    const disponibilite = product[0].disponibilite;
+
+    return res.status(200).json({ disponibilite });
   } catch (error) {
-    console.error('An error occurred:', error);
-    return res.status(500).json({ message: 'An error occurred while fetching the product disponibilite.' });
+    console.error('Database Error:', error); // Log the error for debugging
+    return res.status(500).json({ message: 'An error occurred while fetching the product disponibilite.', error: error.message });
   }
 });
-
 
 
 
@@ -751,7 +736,7 @@ app.get('/fournisseurs/:fournisseurId/details', (req, res) => {
   });
 });
 
- 
+
 // Route to get all fournisseur names and IDs
 app.get('/fournisseurs/names', (req, res) => {
   connection.query('SELECT id, nom FROM fournisseur', (err, rows) => {
@@ -767,178 +752,5 @@ app.get('/fournisseurs/names', (req, res) => {
     }
   });
 });
-
-app.post('/bills', (req, res) => {
-  const { serverName, dateTime, tableNumber, products, totalAmount } = req.body;
-  const paymentStatus = 'unpaid'; // Default payment status
-  const query = 'INSERT INTO bills (serverName, dateTime, tableNumber, products, totalAmount, payment_status) VALUES (?, ?, ?, ?, ?, ?)';
-  connection.query(query, [serverName, dateTime, tableNumber, products, totalAmount, paymentStatus], (error, results) => {
-    if (error) {
-      console.log('Error creating bill:', error);
-      res.status(500).json({ error: 'Error creating bill' });
-    } else {
-      res.json({ message: 'Bill created successfully' });
-    }
-  });
-});
-
-
-
-/*
-app.post('/bills', (req, res) => {
-  const { serverName, tableNumber, totalAmount, billItems } = req.body;
-  const dateTime = new Date();
-  const paymentStatus = 'unpaid';
-
-  // Insert bill data into the bills table
-  const billQuery = 'INSERT INTO bills (serverName, dateTime, tableNumber, totalAmount, payment_status) VALUES (?, ?, ?, ?, ?)';
-  connection.query(billQuery, [serverName, dateTime, tableNumber, totalAmount, paymentStatus], (error, results) => {
-    if (error) {
-      console.log('Error creating bill:', error);
-      res.status(500).json({ error: 'Error creating bill' });
-    } else {
-      const billId = results.insertId; // Get the ID of the newly inserted bill
-
-      // Insert bill items into the bill_items table
-      const billItemsQuery = 'INSERT INTO bill_items (bill_id, product_name, quantity, total_amount) VALUES (?, ?, ?, ?)';
-      billItems.forEach((item) => {
-        connection.query(billItemsQuery, [billId, item.product_name, item.quantity, item.total_amount], (itemError) => {
-          if (itemError) {
-            console.log('Error creating bill item:', itemError);
-          }
-        });
-      });
-
-      res.json({ message: 'Bill created successfully' });
-    }
-  });
-});
-
-*/
-
-
-// Route to retrieve unpaid bills
-app.get('/bills', (req, res) => {
-  const query = 'SELECT * FROM bills WHERE payment_status = "unpaid"';
-  connection.query(query, (error, rows) => {
-    if (error) {
-      console.log('Error retrieving bills:', error);
-      res.status(500).json({ error: 'Error retrieving bills' });
-    } else {
-      const bills = rows.map(row => ({
-        title: 'The House Coffee Shop',
-        welcomeText: 'Welcome',
-        serverName: row.serverName,
-        dateTime: row.dateTime,
-        tableNumber: row.tableNumber,
-        products: row.products.split(','), // Assuming products are stored as a comma-separated string
-        totalAmount: row.totalAmount,
-        id: row.id // Assuming you have an ID field in your database table
-      }));
-
-      res.json({ bills });
-    }
-  });
-});
-
-
-
-// Route to update the status of a bill
-app.put('/bills/:id', (req, res) => {
-  const { id } = req.params;
-  const { paymentStatus } = req.body;
-  const query = 'UPDATE bills SET paymentStatus = ? WHERE id = ?';
-  connection.query(query, [paymentStatus, id], (error, results) => {
-    if (error) {
-      console.log('Error updating bill status:', error);
-      res.status(500).json({ error: 'Error updating bill status' });
-    } else {
-      res.json({ message: 'Bill status updated successfully' });
-    }
-  });
-});
-
-// Route to delete a bill by ID
-app.delete('/bills/:id', (req, res) => {
-  const { id } = req.params;
-  const query = 'DELETE FROM bills WHERE id = ?';
-  connection.query(query, [id], (error, results) => {
-    if (error) {
-      console.log('Error deleting bill:', error);
-      res.status(500).json({ error: 'Error deleting bill' });
-    } else {
-      res.json({ message: 'Bill deleted successfully' });
-    }
-  });
-});
-
-
-// Update bill payment status
-app.put('/bills/:billId/pay', (req, res) => {
-  const billId = req.params.billId;
-  const paymentStatus = 'paid'; // Set payment status to "paid" here
-  const query = 'UPDATE bills SET payment_status = ? WHERE id = ?';
-  connection.query(query, [paymentStatus, billId], (error, results) => {
-    if (error) {
-      console.log('Error updating bill payment status:', error);
-      res.status(500).json({ error: 'Error updating bill payment status' });
-    } else {
-      res.json({ message: 'Bill payment status updated successfully' });
-    }
-  });
-});
-
-
-
-// Route to edit a bill by ID
-app.put('/bl/bills/:id', (req, res) => {
-  const { id } = req.params;
-  const updatedBill = req.body; // Assuming the updated bill data is sent in the request body
-
-  // Set the 'dateTime' field to the current timestamp
-  updatedBill.dateTime = new Date(); // This will set 'dateTime' to the current date and time
-
-  // Update the bill in the database using the provided data
-  const query = 'UPDATE bills SET serverName=?, dateTime=?, tableNumber=?, products=?, totalAmount=?, payment_status=? WHERE id = ?';
-  const values = [
-    updatedBill.serverName || '',
-    updatedBill.dateTime || '', // This will be the current timestamp
-    updatedBill.tableNumber || 0,
-    updatedBill.products ? updatedBill.products.join(',') : '', // Convert products to a comma-separated string
-    updatedBill.totalAmount || 0,
-    'unpaid', // Set payment_status to 'unpaid'
-    id,
-  ];
-
-  connection.query(query, values, (error, results) => {
-    if (error) {
-      console.log('Error updating bill:', error);
-      res.status(500).json({ error: 'Error updating bill' });
-    } else {
-      res.json({ message: 'Bill updated successfully' });
-    }
-  });
-});
-
-app.post('/login_inventory', (req, res) => {
-  const { email, password } = req.body;
-
-  const query = `SELECT * FROM login_inventory WHERE email = '${email}' AND password = '${password}'`;
-
-  connection.query(query, (error, results) => {
-    if (error) throw error;
-
-    if (results.length === 1) {
-      res.json({ success: true, message: 'Login successful' });
-    } else {
-      res.json({ success: false, message: 'Invalid credentials' });
-    }
-  });
-});
-
-
-
-
-
 
 

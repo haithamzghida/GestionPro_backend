@@ -349,7 +349,6 @@ app.post('/products', (req, res) => {
 
 
 
-
 // Route to add a new category
 app.post('/categories', (req, res) => {
   const { name, description } = req.body;
@@ -426,7 +425,7 @@ app.delete('/products/:productId', (req, res) => {
 // Route to update a product by ID
 app.put('/products/:productId', (req, res) => {
   const productId = req.params.productId;
-  const { name, price, description, image_url, category_id, cout_de_production, profit } = req.body;
+  const { name, price, description, image_url, category_id } = req.body;
 
   // Prepare the updated product data
   const updatedProduct = {};
@@ -445,12 +444,6 @@ app.put('/products/:productId', (req, res) => {
   }
   if (category_id) {
     updatedProduct.category_id = category_id;
-  }
-  if (cout_de_production !== undefined) {
-    updatedProduct.cout_de_production = cout_de_production;
-  }
-  if (profit !== undefined) {
-    updatedProduct.profit = profit;
   }
 
   if (Object.keys(updatedProduct).length === 0) {
@@ -474,7 +467,6 @@ app.put('/products/:productId', (req, res) => {
     }
   });
 });
-
 
 // Route to update the "disponibilite" column for a specific product by ID
 app.put('/products/:productId/disponibilite', (req, res) => {
@@ -916,22 +908,6 @@ app.put('/bl/bills/:id', (req, res) => {
       res.status(500).json({ error: 'Error updating bill' });
     } else {
       res.json({ message: 'Bill updated successfully' });
-    }
-  });
-});
-
-app.post('/login_inventory', (req, res) => {
-  const { email, password } = req.body;
-
-  const query = `SELECT * FROM login_inventory WHERE email = '${email}' AND password = '${password}'`;
-
-  connection.query(query, (error, results) => {
-    if (error) throw error;
-
-    if (results.length === 1) {
-      res.json({ success: true, message: 'Login successful' });
-    } else {
-      res.json({ success: false, message: 'Invalid credentials' });
     }
   });
 });
