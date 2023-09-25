@@ -950,73 +950,23 @@ app.get('/login_inventory', (req, res) => {
 });
 
 
-
 // Endpoint to create a login record
-app.post('/login_inventory/add', (req, res) => {
+app.post('/login_inventory', (req, res) => {
   const { email, password, role } = req.body;
 
+  // Assuming your table structure has columns `email`, `password`, and `role`
   const query = `INSERT INTO login_inventory (email, password, role) VALUES (?, ?, ?)`;
 
   connection.query(query, [email, password, role], (error, results) => {
     if (error) {
       console.error('Error inserting login record:', error);
-      res.status(500).json({ success: false, message: 'Error creating login record', error: error.message });
+      res.json({ success: false, message: 'Error creating login record' });
     } else {
       console.log('Login record created successfully');
       res.json({ success: true, message: 'Login record created successfully' });
     }
   });
 });
-
-// Endpoint to delete a login record by ID
-app.delete('/delete_login/:id', (req, res) => {
-  const loginId = req.params.id;
-
-  // Assuming your table has a primary key named 'id'
-  const query = `DELETE FROM login_inventory WHERE id = ?`;
-
-  connection.query(query, [loginId], (error, results) => {
-    if (error) {
-      console.error('Error deleting login record:', error);
-      res.status(500).json({ success: false, message: 'Error deleting login record' });
-    } else {
-      if (results.affectedRows === 0) {
-        // No rows were affected, meaning the record with the provided ID was not found
-        res.status(404).json({ success: false, message: 'Login record not found' });
-      } else {
-        console.log('Login record deleted successfully');
-        res.json({ success: true, message: 'Login record deleted successfully' });
-      }
-    }
-  });
-});
-
-// Endpoint to edit a login record by ID
-app.put('/edit_login/:id', (req, res) => {
-  const loginId = req.params.id;
-  const { email, password, role } = req.body;
-
-  // Assuming your table has a primary key named 'id'
-  const query = `UPDATE login_inventory SET email = ?, password = ?, role = ? WHERE id = ?`;
-
-  connection.query(query, [email, password, role, loginId], (error, results) => {
-    if (error) {
-      console.error('Error updating login record:', error);
-      res.status(500).json({ success: false, message: 'Error updating login record' });
-    } else {
-      if (results.affectedRows === 0) {
-        // No rows were affected, meaning the record with the provided ID was not found
-        res.status(404).json({ success: false, message: 'Login record not found' });
-      } else {
-        console.log('Login record updated successfully');
-        res.json({ success: true, message: 'Login record updated successfully' });
-      }
-    }
-  });
-});
-
-
-
 
 
 

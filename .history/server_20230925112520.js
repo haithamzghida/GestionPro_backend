@@ -991,30 +991,6 @@ app.delete('/delete_login/:id', (req, res) => {
   });
 });
 
-// Endpoint to edit a login record by ID
-app.put('/edit_login/:id', (req, res) => {
-  const loginId = req.params.id;
-  const { email, password, role } = req.body;
-
-  // Assuming your table has a primary key named 'id'
-  const query = `UPDATE login_inventory SET email = ?, password = ?, role = ? WHERE id = ?`;
-
-  connection.query(query, [email, password, role, loginId], (error, results) => {
-    if (error) {
-      console.error('Error updating login record:', error);
-      res.status(500).json({ success: false, message: 'Error updating login record' });
-    } else {
-      if (results.affectedRows === 0) {
-        // No rows were affected, meaning the record with the provided ID was not found
-        res.status(404).json({ success: false, message: 'Login record not found' });
-      } else {
-        console.log('Login record updated successfully');
-        res.json({ success: true, message: 'Login record updated successfully' });
-      }
-    }
-  });
-});
-
 
 
 
