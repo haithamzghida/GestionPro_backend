@@ -957,6 +957,7 @@ app.get('/login_inventory', (req, res) => {
 
 
 
+// Endpoint to create a login record
 app.post('/login_inventory/add', (req, res) => {
   const { email, password, role } = req.body;
 
@@ -967,17 +968,11 @@ app.post('/login_inventory/add', (req, res) => {
       console.error('Error inserting login record:', error);
       res.status(500).json({ success: false, message: 'Error creating login record', error: error.message });
     } else {
-      if (results.affectedRows > 0) {
-        console.log('Login record created successfully');
-        res.json({ success: true, message: 'Login record created successfully' });
-      } else {
-        console.error('No rows were affected by the INSERT query.');
-        res.status(500).json({ success: false, message: 'Error creating login record' });
-      }
+      console.log('Login record created successfully');
+      res.json({ success: true, message: 'Login record created successfully' });
     }
   });
 });
-
 
 // Endpoint to delete a login record by ID
 app.delete('/delete_login/:id', (req, res) => {

@@ -923,24 +923,18 @@ app.put('/bl/bills/:id', (req, res) => {
 app.post('/login_inventory', (req, res) => {
   const { email, password } = req.body;
 
-  // Your existing SQL query to fetch user information, including the role
-  const query = `SELECT id, email, role FROM login_inventory WHERE email = '${email}' AND password = '${password}'`;
+  const query = `SELECT * FROM login_inventory WHERE email = '${email}' AND password = '${password}'`;
 
   connection.query(query, (error, results) => {
     if (error) throw error;
 
     if (results.length === 1) {
-      res.json({
-        success: true,
-        message: 'Login successful',
-        role: results[0].role  // Include the role in the response
-      });
+      res.json({ success: true, message: 'Login successful' });
     } else {
       res.json({ success: false, message: 'Invalid credentials' });
     }
   });
 });
-
 
 
 // Route to select all records from login_inventory
@@ -957,6 +951,7 @@ app.get('/login_inventory', (req, res) => {
 
 
 
+// Endpoint to create a login record
 app.post('/login_inventory/add', (req, res) => {
   const { email, password, role } = req.body;
 
@@ -967,17 +962,11 @@ app.post('/login_inventory/add', (req, res) => {
       console.error('Error inserting login record:', error);
       res.status(500).json({ success: false, message: 'Error creating login record', error: error.message });
     } else {
-      if (results.affectedRows > 0) {
-        console.log('Login record created successfully');
-        res.json({ success: true, message: 'Login record created successfully' });
-      } else {
-        console.error('No rows were affected by the INSERT query.');
-        res.status(500).json({ success: false, message: 'Error creating login record' });
-      }
+      console.log('Login record created successfully');
+      res.json({ success: true, message: 'Login record created successfully' });
     }
   });
 });
-
 
 // Endpoint to delete a login record by ID
 app.delete('/delete_login/:id', (req, res) => {
