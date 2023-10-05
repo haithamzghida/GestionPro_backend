@@ -1066,21 +1066,6 @@ app.post('/rates', (req, res) => {
 });
 
 
-// Route to get all rates
-app.get('/rates', (req, res) => {
-  // Define the SQL query to retrieve all rates
-  const query = 'SELECT * FROM Rate';
-
-  // Execute the query to fetch all rates
-  connection.query(query, (error, results) => {
-    if (error) {
-      console.log('Error fetching rates:', error);
-      res.status(500).json({ error: 'Error fetching rates' });
-    } else {
-      res.json(results);
-    }
-  });
-});
 
 
 

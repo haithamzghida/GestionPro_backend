@@ -1039,49 +1039,6 @@ app.get('/messages', (req, res) => {
 });
 
 
-// Route to insert a new rate record
-app.post('/rates', (req, res) => {
-  const { rate_title } = req.body;
-  
-  // Ensure that the rate title is provided
-  if (!rate_title) {
-    return res.status(400).json({ error: 'Rate title is required' });
-  }
-
-  // Get the current date and time
-  const date_time = new Date().toISOString().slice(0, 19).replace('T', ' ');
-
-  // Define the SQL query to insert a new rate record
-  const query = 'INSERT INTO Rate (rate_title, date_time) VALUES (?, ?)';
-  
-  // Execute the query to insert the rate record
-  connection.query(query, [rate_title, date_time], (error, results) => {
-    if (error) {
-      console.log('Error inserting rate:', error);
-      res.status(500).json({ error: 'Error inserting rate' });
-    } else {
-      res.json({ message: 'Rate inserted successfully' });
-    }
-  });
-});
-
-
-// Route to get all rates
-app.get('/rates', (req, res) => {
-  // Define the SQL query to retrieve all rates
-  const query = 'SELECT * FROM Rate';
-
-  // Execute the query to fetch all rates
-  connection.query(query, (error, results) => {
-    if (error) {
-      console.log('Error fetching rates:', error);
-      res.status(500).json({ error: 'Error fetching rates' });
-    } else {
-      res.json(results);
-    }
-  });
-});
-
 
 
 
